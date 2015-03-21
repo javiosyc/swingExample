@@ -1,3 +1,4 @@
+package gui;
 public class Utils {
 	public static String getExtension(String name) {
 		int pointIndex = name.lastIndexOf(".");
