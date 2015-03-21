@@ -1,20 +1,24 @@
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.security.KeyStore;
+import java.io.File;
 
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 public class MainFrame extends JFrame {
 	private TextPanel textPanel;
 	private Toolbar toolbar;
 	private FormPanel formPanel;
+	private JFileChooser fileChooser;
 
 	public MainFrame() {
 
@@ -25,6 +29,13 @@ public class MainFrame extends JFrame {
 		toolbar = new Toolbar();
 		textPanel = new TextPanel();
 		formPanel = new FormPanel();
+
+		fileChooser = new JFileChooser();
+		fileChooser
+				.setCurrentDirectory(new File(System.getProperty("user.dir")));
+		fileChooser.setAcceptAllFileFilterUsed(false);
+		fileChooser.setMultiSelectionEnabled(true);
+		fileChooser.addChoosableFileFilter(new PersonFileFilter());
 
 		setJMenuBar(createMenuBar());
 		toolbar.setStringListener(new StringListener() {
@@ -48,6 +59,7 @@ public class MainFrame extends JFrame {
 		add(toolbar, BorderLayout.NORTH);
 		add(textPanel, BorderLayout.CENTER);
 
+		setMinimumSize(new Dimension(500, 400));
 		setSize(600, 500);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
@@ -92,14 +104,40 @@ public class MainFrame extends JFrame {
 
 		// Mac control + option + F
 		fileMenu.setMnemonic(KeyEvent.VK_F);
-
 		exitItem.setMnemonic(KeyEvent.VK_X);
+
+		importDataItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (fileChooser.showOpenDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
+					
+					File[] selectedFile = fileChooser.getSelectedFiles();
+					for(File file : selectedFile) {
+						System.out.println(file);						
+					}
+				}
+			}
+		});
+
+		exportDataItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (fileChooser.showSaveDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
+					System.out.println(fileChooser.getSelectedFile());
+				}
+			}
+		});
 
 		exitItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X,
 				ActionEvent.CTRL_MASK));
 		exitItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
+
+				int action = JOptionPane.showConfirmDialog(MainFrame.this,
+						"Do you really want to exit the application?",
+						"Confirm Exit", JOptionPane.OK_CANCEL_OPTION);
+
+				if (action == JOptionPane.OK_OPTION) {
+					System.exit(0);
+				}
 			}
 		});
 		return menuBar;
