@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.prefs.Preferences;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
@@ -27,7 +28,9 @@ public class MainFrame extends JFrame {
 	private Controller controller;
 
 	private TablePanel tablePanel;
-
+	private PrefsDialog prefsDailog;
+	private Preferences prefs;
+	
 	public MainFrame() {
 
 		super("Hello World");
@@ -38,7 +41,12 @@ public class MainFrame extends JFrame {
 		textPanel = new TextPanel();
 		formPanel = new FormPanel();
 		tablePanel = new TablePanel();
+		prefsDailog = new PrefsDialog(this);
 
+		prefs = Preferences.userRoot().node("db");
+		// save in /Users/username/Library/Preferences/com.apple.java.util.prefs.plist (Mac)
+		// Root/db
+		
 		controller = new Controller();
 
 		tablePanel.setData(controller.getPeople());
@@ -48,6 +56,20 @@ public class MainFrame extends JFrame {
 				controller.removePerson(row);
 			}
 		});
+		
+		prefsDailog.setPrefsListener( new PrefsListener() {
+			public void preferencesSet(String user, String password, int port) {
+				prefs.put("user", user);
+				prefs.put("password", password);
+				prefs.putInt("port", port);
+			}
+		});
+		
+		String user = prefs.get("user", "");
+		String password = prefs.get("password", "");
+		Integer port = prefs.getInt("port",3306);
+		
+		prefsDailog.setDefaulsts(user, password, port);
 		
 		fileChooser = new JFileChooser();
 		fileChooser
@@ -96,7 +118,7 @@ public class MainFrame extends JFrame {
 
 		JMenu windowMenu = new JMenu("Window");
 		JMenu showMenu = new JMenu("Show");
-
+		JMenuItem prefsItem = new JMenuItem("Preferencess");
 		// if declare showFormItem final, it can reference that
 		// directly in ActionListener.
 		JCheckBoxMenuItem showFormItem = new JCheckBoxMenuItem("Person Form");
@@ -104,10 +126,17 @@ public class MainFrame extends JFrame {
 		showFormItem.setSelected(true);
 		showMenu.add(showFormItem);
 		windowMenu.add(showMenu);
+		windowMenu.add(prefsItem);
 
 		menuBar.add(fileMenu);
 		menuBar.add(windowMenu);
 
+		prefsItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				prefsDailog.setVisible(true);
+			}
+		});
+		
 		showFormItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				// got the menu item from the source of the event
@@ -154,6 +183,8 @@ public class MainFrame extends JFrame {
 		importDataItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I,
 				ActionEvent.CTRL_MASK));
 		
+		prefsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P,
+				ActionEvent.CTRL_MASK));
 		
 		exitItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
