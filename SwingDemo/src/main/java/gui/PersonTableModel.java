@@ -8,6 +8,8 @@ import model.Person;
 
 public class PersonTableModel extends AbstractTableModel {
 
+	private static final long serialVersionUID = 6040239047016425144L;
+
 	private List<Person> db;
 
 	private String[] colNames = { "ID", "Name", "Occupation", "Age Category",
