@@ -1,4 +1,9 @@
 package gui;
+
+import java.net.URL;
+
+import javax.swing.ImageIcon;
+
 public class Utils {
 	public static String getExtension(String name) {
 		int pointIndex = name.lastIndexOf(".");
@@ -12,4 +17,17 @@ public class Utils {
 
 		return name.substring(pointIndex + 1, name.length());
 	}
+
+	public static ImageIcon createIcon(String path) {
+		URL url = System.class.getResource(path);
+
+		if (url == null) {
+			System.err.println("Unable to laod image:" + url);
+			return null;
+		}
+
+		ImageIcon icon = new ImageIcon(url);
+		return icon;
+	}
+
 }

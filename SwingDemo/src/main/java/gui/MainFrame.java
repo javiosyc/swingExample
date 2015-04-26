@@ -20,11 +20,16 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 
 import controller.Controller;
 
 public class MainFrame extends JFrame {
+
+	private static final long serialVersionUID = -8718118172421921437L;
+	private TextPanel textPanel;
 	private Toolbar toolbar;
 	private FormPanel formPanel;
 	private JFileChooser fileChooser;
@@ -33,7 +38,9 @@ public class MainFrame extends JFrame {
 	private TablePanel tablePanel;
 	private PrefsDialog prefsDailog;
 	private Preferences prefs;
-	
+	private JSplitPane splitPane;
+	private JTabbedPane tabPane;
+	private MessagePanel messsagePanel;
 	public MainFrame() {
 
 		super("Hello World");
@@ -41,38 +48,50 @@ public class MainFrame extends JFrame {
 		setLayout(new BorderLayout());
 
 		toolbar = new Toolbar();
+		textPanel = new TextPanel();
 		formPanel = new FormPanel();
 		tablePanel = new TablePanel();
 		prefsDailog = new PrefsDialog(this);
+		tabPane = new JTabbedPane();
+		messsagePanel = new MessagePanel();
+		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, formPanel,
+				tabPane);
+
+		splitPane.setOneTouchExpandable(true);
+
+		tabPane.addTab("Person Database", tablePanel);
+		tabPane.addTab("Message", messsagePanel);
 
 		prefs = Preferences.userRoot().node("db");
-		// save in /Users/username/Library/Preferences/com.apple.java.util.prefs.plist (Mac)
-		// Root/db
-		
+		/*
+		 * save in
+		 * /Users/username/Library/Preferences/com.apple.java.util.prefs.plist
+		 * (Mac) Root/db
+		 */
 		controller = new Controller();
 
 		tablePanel.setData(controller.getPeople());
 
-		tablePanel.setPersonTableListener(new PersonTableListener(){
+		tablePanel.setPersonTableListener(new PersonTableListener() {
 			public void rowDeleted(int row) {
 				controller.removePerson(row);
 			}
 		});
-		
-		prefsDailog.setPrefsListener( new PrefsListener() {
+
+		prefsDailog.setPrefsListener(new PrefsListener() {
 			public void preferencesSet(String user, String password, int port) {
 				prefs.put("user", user);
 				prefs.put("password", password);
 				prefs.putInt("port", port);
 			}
 		});
-		
+
 		String user = prefs.get("user", "");
 		String password = prefs.get("password", "");
-		Integer port = prefs.getInt("port",3306);
-		
+		Integer port = prefs.getInt("port", 3306);
+
 		prefsDailog.setDefaulsts(user, password, port);
-		
+
 		fileChooser = new JFileChooser();
 		fileChooser
 				.setCurrentDirectory(new File(System.getProperty("user.dir")));
@@ -87,21 +106,28 @@ public class MainFrame extends JFrame {
 				try {
 					controller.save();
 				} catch (SQLException e) {
-					JOptionPane.showMessageDialog(MainFrame.this,"Unable to save to database","Database Connection Problem",JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(MainFrame.this,
+							"Unable to save to database",
+							"Database Connection Problem",
+							JOptionPane.ERROR_MESSAGE);
 				}
 			}
+
 			public void refreshEventOccured() {
 				connect();
-				
+
 				try {
 					controller.load();
 				} catch (SQLException e) {
-					JOptionPane.showMessageDialog(MainFrame.this,"Unable to load from database","Database Connection Problem",JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(MainFrame.this,
+							"Unable to load from database",
+							"Database Connection Problem",
+							JOptionPane.ERROR_MESSAGE);
 				}
-				
+
 				tablePanel.refresh();
 			}
-			
+
 		});
 
 		formPanel.setFormListener(new FormListener() {
@@ -110,7 +136,7 @@ public class MainFrame extends JFrame {
 				tablePanel.refresh();
 			}
 		});
-		
+
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				controller.disconnect();
@@ -118,10 +144,9 @@ public class MainFrame extends JFrame {
 				System.gc();
 			}
 		});
-		
-		add(formPanel, BorderLayout.WEST);
-		add(toolbar, BorderLayout.NORTH);
-		add(tablePanel, BorderLayout.CENTER);
+
+		add(toolbar, BorderLayout.PAGE_START);
+		add(splitPane, BorderLayout.CENTER);
 
 		setMinimumSize(new Dimension(500, 400));
 		setSize(600, 500);
@@ -134,7 +159,9 @@ public class MainFrame extends JFrame {
 		try {
 			controller.connect();
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(MainFrame.this,"Cannot connect to database","Database Connection Problem",JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(MainFrame.this,
+					"Cannot connect to database",
+					"Database Connection Problem", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -172,11 +199,17 @@ public class MainFrame extends JFrame {
 				prefsDailog.setVisible(true);
 			}
 		});
-		
+
 		showFormItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				// got the menu item from the source of the event
 				JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) ev.getSource();
+
+				if (menuItem.isSelected()) {
+					splitPane.setDividerLocation((int) formPanel
+							.getMinimumSize().getWidth());
+				}
+
 				formPanel.setVisible(menuItem.isSelected());
 			}
 		});
@@ -218,10 +251,10 @@ public class MainFrame extends JFrame {
 				ActionEvent.CTRL_MASK));
 		importDataItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I,
 				ActionEvent.CTRL_MASK));
-		
+
 		prefsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P,
 				ActionEvent.CTRL_MASK));
-		
+
 		exitItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 
@@ -230,10 +263,11 @@ public class MainFrame extends JFrame {
 						"Confirm Exit", JOptionPane.OK_CANCEL_OPTION);
 
 				if (action == JOptionPane.OK_OPTION) {
-					WindowListener[] listeners  = getWindowListeners();
-					
-					for(WindowListener listener : listeners) {
-						listener.windowClosing(new WindowEvent(MainFrame.this, 0));
+					WindowListener[] listeners = getWindowListeners();
+
+					for (WindowListener listener : listeners) {
+						listener.windowClosing(new WindowEvent(MainFrame.this,
+								0));
 					}
 				}
 			}
