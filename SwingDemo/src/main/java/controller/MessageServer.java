@@ -34,7 +34,6 @@ public class MessageServer implements Iterable<Message> {
 		result.put(1, list);
 		list = new ArrayList<Message>();
 		list.add(new Message("title1", "message 1 from server 2"));
-		// list.add(new Message("title2", "message 2 from server 2"));
 		result.put(2, list);
 		return result;
 	}

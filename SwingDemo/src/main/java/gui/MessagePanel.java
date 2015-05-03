@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Window;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,13 +9,19 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTree;
 import javax.swing.SwingWorker;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -26,16 +33,22 @@ public class MessagePanel extends JPanel {
 	private JTree serverTree;
 	private ServerTreeCellRenderer treeCellRenderer;
 	private ServerTreeCellEditor treeCellEditor;
-
 	private ProgressDialog progressDialog;
+
 	private Set<Integer> selectedServers;
 	private MessageServer messageServer;
-
 	private SwingWorker<List<Message>, Integer> worker;
+
+	private TextPanel textPanel;
+	private JList<Message> messageList;
+	private JSplitPane upperPane;
+	private JSplitPane lowerPane;
+	private DefaultListModel<Message> messageListModel;
 
 	public MessagePanel(JFrame parnet) {
 
-		progressDialog = new ProgressDialog((Window) getParent(),
+		messageListModel = new DefaultListModel<Message>();
+		progressDialog = new ProgressDialog((Window) parnet,
 				"Message Downloading...");
 		progressDialog.setListener(new ProgressDialogListener() {
 			public void progressDialogCancelled() {
@@ -60,6 +73,7 @@ public class MessagePanel extends JPanel {
 		serverTree.getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 
+		messageServer.setSelectedServer(selectedServers);
 		treeCellEditor.addCellEditorListener(new CellEditorListener() {
 			public void editingStopped(ChangeEvent e) {
 
@@ -89,14 +103,42 @@ public class MessagePanel extends JPanel {
 
 		setLayout(new BorderLayout());
 
-		add(new JScrollPane(serverTree), BorderLayout.CENTER);
+		textPanel = new TextPanel();
+		messageList = new JList<Message>(messageListModel);
+		messageList.setCellRenderer(new MessageListRenderer());
+
+		messageList.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				Message message = messageList.getSelectedValue();
+				textPanel.setText(message.getContents());
+			}
+		});
+
+		lowerPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(
+				messageList), textPanel);
+		upperPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(
+				serverTree), lowerPane);
+
+		textPanel.setMaximumSize(new Dimension(10, 100));
+		messageList.setMaximumSize(new Dimension(10, 100));
+
+		// messageList.setBorder(null);
+		// textPanel.setBorder(null);
+		upperPane.setResizeWeight(0.5);
+		// upperPane.setBorder(BorderFactory.createEmptyBorder());
+		lowerPane.setBorder(BorderFactory.createEmptyBorder());
+		lowerPane.setResizeWeight(0.5);
+		add(upperPane, BorderLayout.CENTER);
 	}
 
-	protected void retrieveMessages() {
+	public void refresh() {
+		retrieveMessages();
+	}
+
+	private void retrieveMessages() {
 
 		progressDialog.setMaximum(messageServer.getMessageCount());
 		progressDialog.setVisible(true);
-
 		worker = new SwingWorker<List<Message>, Integer>() {
 
 			@Override
@@ -113,8 +155,13 @@ public class MessagePanel extends JPanel {
 					return;
 				try {
 					List<Message> retrieveMessages = get();
-					System.out.println("Retrieved " + retrieveMessages.size()
-							+ " messages.");
+					messageListModel.removeAllElements();
+
+					for (Message message : retrieveMessages) {
+						messageListModel.addElement(message);
+					}
+					messageList.setSelectedIndex(0);
+
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				} catch (ExecutionException e) {

@@ -1,5 +1,7 @@
 package gui;
 
+import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Window;
@@ -85,14 +87,17 @@ public class ProgressDialog extends JDialog {
 	public void setVisible(final boolean visible) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				if (!visible) {
+				if (visible) {
+					progressBar.setValue(0);
+					setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+					Container test = getParent();					
+				} else {
 					try {
 						Thread.sleep(COMPLETE_LATENCY);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-				} else {
-					progressBar.setValue(0);
+					setCursor(Cursor.getDefaultCursor());
 				}
 				ProgressDialog.super.setVisible(visible);
 			}

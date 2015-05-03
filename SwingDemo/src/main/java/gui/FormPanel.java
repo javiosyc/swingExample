@@ -23,6 +23,7 @@ import javax.swing.border.Border;
 
 public class FormPanel extends JPanel {
 
+	private static final long serialVersionUID = 6461818085023403754L;
 	private JLabel nameLabel;
 	private JLabel occupationLabel;
 	private JTextField nameField;

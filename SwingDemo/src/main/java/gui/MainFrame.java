@@ -23,13 +23,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import controller.Controller;
 
 public class MainFrame extends JFrame {
 
 	private static final long serialVersionUID = -8718118172421921437L;
-	private TextPanel textPanel;
 	private Toolbar toolbar;
 	private FormPanel formPanel;
 	private JFileChooser fileChooser;
@@ -48,7 +49,6 @@ public class MainFrame extends JFrame {
 		setLayout(new BorderLayout());
 
 		toolbar = new Toolbar();
-		textPanel = new TextPanel();
 		formPanel = new FormPanel();
 		tablePanel = new TablePanel();
 		prefsDailog = new PrefsDialog(this);
@@ -59,6 +59,15 @@ public class MainFrame extends JFrame {
 
 		splitPane.setOneTouchExpandable(true);
 
+		tabPane.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				int tabPaneIndex = tabPane.getSelectedIndex();
+				
+				if(tabPaneIndex == 1) {
+					messsagePanel.refresh();
+				}
+			}
+		});
 		tabPane.addTab("Person Database", tablePanel);
 		tabPane.addTab("Message", messsagePanel);
 

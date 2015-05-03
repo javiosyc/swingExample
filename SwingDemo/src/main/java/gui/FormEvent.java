@@ -3,6 +3,7 @@ import java.util.EventObject;
 
 public class FormEvent extends EventObject {
 
+	private static final long serialVersionUID = 7518574787225104317L;
 	private String name;
 	private String occupation;
 	private int ageCategory;

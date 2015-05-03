@@ -3,14 +3,16 @@ package gui;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URL;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
 public class Toolbar extends JToolBar implements ActionListener {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -111024640660768832L;
 	private JButton saveButton;
 	private JButton refreshButton;
 
