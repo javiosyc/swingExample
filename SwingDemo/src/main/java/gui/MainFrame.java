@@ -42,6 +42,7 @@ public class MainFrame extends JFrame {
 	private JSplitPane splitPane;
 	private JTabbedPane tabPane;
 	private MessagePanel messsagePanel;
+
 	public MainFrame() {
 
 		super("Hello World");
@@ -62,8 +63,8 @@ public class MainFrame extends JFrame {
 		tabPane.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				int tabPaneIndex = tabPane.getSelectedIndex();
-				
-				if(tabPaneIndex == 1) {
+
+				if (tabPaneIndex == 1) {
 					messsagePanel.refresh();
 				}
 			}
@@ -92,6 +93,12 @@ public class MainFrame extends JFrame {
 				prefs.put("user", user);
 				prefs.put("password", password);
 				prefs.putInt("port", port);
+
+				try {
+					controller.configure(port, user, password);
+				} catch (Exception e) {
+
+				}
 			}
 		});
 
@@ -100,6 +107,12 @@ public class MainFrame extends JFrame {
 		Integer port = prefs.getInt("port", 3306);
 
 		prefsDailog.setDefaulsts(user, password, port);
+
+		try {
+			controller.configure(port, user, password);
+		} catch (Exception e) {
+			System.out.println("Can't connect to database");
+		}
 
 		fileChooser = new JFileChooser();
 		fileChooser
